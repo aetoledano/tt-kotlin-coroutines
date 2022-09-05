@@ -4,17 +4,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 fun main(args: Array<String>) = runBlocking {
-    // runBlocking blocks the current thread
-    anotherScope()
-    
-    return@runBlocking
-}
-
-suspend fun anotherScope() = coroutineScope {
-    // coroutineScope builder is non-blocking
-    launch {
+    val job = launch { // launch a new coroutine and keep a reference to its Job
         delay(1000L)
         println("World!")
     }
     println("Hello")
+    job.join() // wait until child coroutine completes
+    println("Done")
+    
+    return@runBlocking
 }
