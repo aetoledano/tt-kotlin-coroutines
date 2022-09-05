@@ -1,15 +1,20 @@
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 fun main(args: Array<String>) = runBlocking {
-    launch {
-        yourFirstSuspendingFunction()
-    }
-    println("hello ")
+    // runBlocking blocks the current thread
+    anotherScope()
     
     return@runBlocking
 }
 
-suspend fun yourFirstSuspendingFunction() {
-    println("from suspending function !")
+suspend fun anotherScope() = coroutineScope {
+    // coroutineScope builder is non-blocking
+    launch {
+        delay(1000L)
+        println("World!")
+    }
+    println("Hello")
 }
