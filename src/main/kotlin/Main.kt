@@ -1,9 +1,13 @@
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.lang.Exception
+
+// Why do u think the previous code was halting
+// when the exception was thrown ?
+
+// Let's go concurrent / multithreaded now with dispatchers
 
 fun main(args: Array<String>) = runBlocking {
     launch {
@@ -12,32 +16,23 @@ fun main(args: Array<String>) = runBlocking {
             delay(1000L)
         }
     }
-    launch{
-        good("Mike", 3000L)
-    }
-    launch {
-        good("Iye", 2000L)
-    }
-    launch {
-        good("Itza", 8000L)
-    }
-    launch{
-        bad(5000)
-    }
-    launch {
-        good("He never got a chance",6000)
-    }
+    
+    good("Mike", 3000L)
+    good("Iye", 2000L)
+    good("Itza", 8000L)
+    bad(5000)
+    good("He never got a chance", 6000)
     
     return@runBlocking
 }
 
-suspend fun good(name: String, time: Long) {
+suspend fun good(name: String, time: Long) = CoroutineScope(Dispatchers.Default).launch {
     println("$name has started")
     delay(time)
     println("$name has completed")
 }
 
-suspend fun bad(time: Long) {
+suspend fun bad(time: Long) = CoroutineScope(Dispatchers.Default).launch {
     println("BOMB RUNNING")
     delay(time)
     throw Exception("exploding ...")
