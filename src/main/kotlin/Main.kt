@@ -4,13 +4,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 fun main(args: Array<String>) = runBlocking {
-    val job = launch { // launch a new coroutine and keep a reference to its Job
-        delay(1000L)
-        println("World!")
+    repeat(1_000_000) { // launch a lot of coroutines
+        launch {
+            print(".")
+        }
     }
-    println("Hello")
-    job.join() // wait until child coroutine completes
-    println("Done")
     
     return@runBlocking
 }
