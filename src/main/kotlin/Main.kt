@@ -1,9 +1,10 @@
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileReader
@@ -16,7 +17,7 @@ const val ROWS = 100
 const val COLS = 5_000_000
 
 fun main(args: Array<String>) = runBlocking {
-    generateDataset()
+    //generateDataset()
     val matrix: Array<IntArray>
     println(
         "in ${measureTimeMillis { matrix = readDataset() }} ms"
@@ -85,26 +86,30 @@ suspend fun findCoroutines(target: Int, matrix: Array<IntArray>): Long {
     }.awaitAll().sum()
 }
 
-fun readDataset(): Array<IntArray> {
-    val file = File(FILENAME)
-    val buff = BufferedReader(FileReader(file))
-    
-    var matrix = Array(ROWS) { IntArray(COLS) }
-    
-    var i = -1
-    while (i++ < ROWS) {
-        val line = buff.readLine()
-        if (line.isNullOrEmpty() || line.isBlank()) continue
+suspend fun readDataset(): Array<IntArray> =
+    withContext(Dispatchers.IO) {
+        val file = File(FILENAME)
+        val buff = BufferedReader(FileReader(file))
         
-        parseLine(line, matrix[i])
+        val matrix = Array(ROWS) { IntArray(COLS) }
+        
+        val jobs = mutableListOf<Deferred<Unit>>()
+        var i = -1
+        while (i++ < ROWS) {
+            val line = buff.readLine()
+            if (line.isNullOrEmpty() || line.isBlank()) continue
+            
+            jobs.add(parseLineAsync(line, matrix[i]))
+        }
+        
+        buff.close()
+        jobs.awaitAll()
+        print("Dataset read ! ")
+        matrix
     }
-    
-    buff.close()
-    print("Dataset read ! ")
-    return matrix
-}
 
-fun parseLine(line: String, store: IntArray) {
+suspend fun parseLineAsync(line: String, store: IntArray) =
+    CoroutineScope(Dispatchers.Default).async {
         var buff = ""
         var idx = 0
         for (c in line) {
